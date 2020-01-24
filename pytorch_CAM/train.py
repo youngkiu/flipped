@@ -3,6 +3,7 @@ import os
 
 import torch
 import torch.nn as nn
+from tensorboardX import SummaryWriter
 from torch.autograd import Variable
 
 import model
@@ -17,7 +18,8 @@ def train(config):
         config.dataset,
         config.dataset_path,
         config.img_size,
-        config.batch_size)
+        config.batch_size
+    )
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -26,6 +28,8 @@ def train(config):
     criterion = nn.CrossEntropyLoss().to(device)
 
     optimizer = torch.optim.Adam(cnn.parameters(), lr=config.lr)
+
+    summary = SummaryWriter()
 
     min_loss = 999
 
@@ -49,12 +53,17 @@ def train(config):
                 if config.save_model_in_epoch:
                     torch.save(cnn.state_dict(), os.path.join(config.model_path, config.model_name))
 
+            summary.add_scalar('loss/loss_batch', loss.item(), len(train_loader) * epoch + i)
+
         avg_epoch_loss = epoch_loss / len(train_loader)
         print('Epoch [%d/%d], Loss: %.4f' %
               (epoch + 1, config.epoch, avg_epoch_loss))
         if avg_epoch_loss < min_loss:
             min_loss = avg_epoch_loss
             torch.save(cnn.state_dict(), os.path.join(config.model_path, config.model_name))
+
+        summary.add_scalar('loss/loss_epoch', avg_epoch_loss, epoch)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -68,9 +77,12 @@ if __name__ == '__main__':
 
     parser.add_argument('--epoch', type=int, default=30)
     parser.add_argument('--log_step', type=int, default=10)
-    parser.add_argument('--lr', type=float, default=0.001)
+    parser.add_argument('--lr', type=float, default=1e-5)
     parser.add_argument('-s', '--save_model_in_epoch', action='store_true')
+    parser.add_argument('--gpu', default=None)
     config = parser.parse_args()
     print(config)
+
+    os.environ['CUDA_VISIBLE_DEVICES'] = config.gpu
 
     train(config)

@@ -1,24 +1,30 @@
-import os
 import argparse
+import os
 
 import cv2
-import torch
 import numpy as np
-from torch.nn import functional as F
+import torch
 import torchvision.transforms as transforms
+from torch.nn import functional as F
 
-import utils
 import model
+import utils
+
 
 def create_cam(config):
     if not os.path.exists(config.result_path):
         os.mkdir(config.result_path)
-    
-    test_loader, num_class = utils.get_testloader(config.dataset,
-                                        config.dataset_path,
-                                        config.img_size)
+
+    test_loader, num_class = utils.get_testloader(
+        config.dataset,
+        config.dataset_path,
+        config.img_size
+    )
+
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
     cnn = model.CNN(img_size=config.img_size, num_class=num_class).to(device)
+
     cnn.load_state_dict(
         torch.load(os.path.join(config.model_path, config.model_name))
     )
@@ -45,7 +51,7 @@ def create_cam(config):
         cam_img = np.uint8(255 * cam_img)
         output_cam.append(cv2.resize(cam_img, size_upsample))
         return output_cam
-    
+
     for i, (image_tensor, label) in enumerate(test_loader):
         image_PIL = transforms.ToPILImage()(image_tensor[0])
         image_PIL.save(os.path.join(config.result_path, 'img%d.png' % (i + 1)))
@@ -75,8 +81,11 @@ if __name__ == '__main__':
     parser.add_argument('--result_path', type=str, default='./result')
     parser.add_argument('--img_size', type=int, default=128)
     parser.add_argument('--num_result', type=int, default=1)
+    parser.add_argument('--gpu', default=None)
 
     config = parser.parse_args()
     print(config)
+
+    os.environ['CUDA_VISIBLE_DEVICES'] = config.gpu
 
     create_cam(config)
