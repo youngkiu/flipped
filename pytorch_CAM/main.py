@@ -7,6 +7,7 @@ import os
 
 import torch
 from torch.utils.data import DataLoader
+from torch.utils.tensorboard import SummaryWriter
 from torchvision import datasets, transforms
 
 from data import *
@@ -21,10 +22,10 @@ PRETRAINED      = True
 
 
 # hyperparameters
-BATCH_SIZE      = 64
+BATCH_SIZE      = 1024
 IMG_SIZE        = 224
 LEARNING_RATE   = 1e-3
-EPOCH           = 20
+EPOCH           = 1000
 
 
 # prepare data
@@ -91,9 +92,19 @@ else:
     optimizer = torch.optim.SGD(
         model.parameters(), lr=LEARNING_RATE, momentum=0.9, weight_decay=5e-4)
 
+writer_train = SummaryWriter('runs/train_0')
+writer_test = SummaryWriter('runs/test_0')
+
 for epoch in range(EPOCH):
-    retrain(trainloader, model, device, epoch, criterion, optimizer)
-    retest(testloader, model, device, criterion, epoch, RESUME)
+    train_loss, train_acc = retrain(trainloader, model, device, criterion, optimizer, epoch)
+    test_loss, test_acc = retest(testloader, model, device, criterion, epoch, RESUME)
+
+    print('loss - train:%.3f, test:%.3f' % (train_loss, test_loss))
+    print('acc  - train:%.3f, test:%.3f' % (train_acc, test_acc))
+    writer_train.add_scalar('epoch/loss', train_loss, epoch)
+    writer_test.add_scalar('epoch/loss', test_loss, epoch)
+    writer_train.add_scalar('epoch/acc', train_acc, epoch)
+    writer_test.add_scalar('epoch/acc', test_acc, epoch)
 
 
 # hook the feature extractor
