@@ -44,15 +44,13 @@ def retrain(trainloader, model, device, criterion, optimizer, epoch):
     os.makedirs('result', exist_ok=True)
     with open('result/train_acc.txt', 'a') as f:
         f.write(str(acc_avg))
-    f.close()
     with open('result/train_loss.txt', 'a') as f:
         f.write(str(loss_avg))
-    f.close()
 
     return loss_avg, acc_avg / 100.
 
 
-def retest(testloader, model, device, criterion, epoch, RESUME):
+def retest(testloader, model, device, criterion, epoch):
     model.eval()
 
     loss_sum = 0
@@ -72,7 +70,7 @@ def retest(testloader, model, device, criterion, epoch, RESUME):
         correct = pred.eq(label.data.view_as(pred)).cpu().sum()
         correct_sum += correct
 
-    test_loss = loss_sum / len(testloader.dataset)
+    test_loss = loss_sum / len(testloader)
     test_acc = 100. * correct_sum / len(testloader.dataset)
 
     result = '\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.3f}%)\n'.format(
@@ -81,18 +79,15 @@ def retest(testloader, model, device, criterion, epoch, RESUME):
 
     # Save checkpoint.
     os.makedirs('checkpoint', exist_ok=True)
+    os.makedirs('result', exist_ok=True)
     if epoch % 1 == 0:
-        torch.save(model.state_dict(), 'checkpoint/' + str(RESUME + int(epoch / 10)) + '.pt')
+        torch.save(model.state_dict(), 'checkpoint/' + str(epoch) + '.pt')
         with open('result/result.txt', 'a') as f:
             f.write(result)
-        f.close()
 
-    os.makedirs('result', exist_ok=True)
     with open('result/test_acc.txt', 'a') as f:
         f.write(str(test_acc))
-    f.close()
     with open('result/test_loss.txt', 'a') as f:
         f.write(str(test_loss))
-    f.close()
 
     return test_loss, test_acc / 100.

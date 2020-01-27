@@ -5,6 +5,7 @@ Googlenet, Kaggle data
 
 import os
 
+import cv2
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
@@ -17,12 +18,12 @@ from update import *
 
 # functions
 CAM             = 1
-RESUME          = 0
-PRETRAINED      = True
+RESUME          = None
+PRETRAINED      = False
 
 
 # hyperparameters
-BATCH_SIZE      = 1024
+BATCH_SIZE      = 64
 IMG_SIZE        = 224
 LEARNING_RATE   = 1e-3
 EPOCH           = 1000
@@ -76,7 +77,7 @@ model.to(device)
 
 
 # load checkpoint
-if RESUME != 0:
+if RESUME is not None:
     print("===> Resuming from checkpoint.")
     assert os.path.isfile('checkpoint/'+ str(RESUME) + '.pt'), 'Error: no checkpoint found!'
     model.load_state_dict(torch.load('checkpoint/' + str(RESUME) + '.pt'))
@@ -92,12 +93,12 @@ else:
     optimizer = torch.optim.SGD(
         model.parameters(), lr=LEARNING_RATE, momentum=0.9, weight_decay=5e-4)
 
-writer_train = SummaryWriter('runs/train_0')
-writer_test = SummaryWriter('runs/test_0')
+writer_train = SummaryWriter('runs/train')
+writer_test = SummaryWriter('runs/test')
 
 for epoch in range(EPOCH):
     train_loss, train_acc = retrain(trainloader, model, device, criterion, optimizer, epoch)
-    test_loss, test_acc = retest(testloader, model, device, criterion, epoch, RESUME)
+    test_loss, test_acc = retest(testloader, model, device, criterion, epoch)
 
     print('loss - train:%.3f, test:%.3f' % (train_loss, test_loss))
     print('acc  - train:%.3f, test:%.3f' % (train_acc, test_acc))
@@ -121,7 +122,24 @@ model._modules.get(final_conv).register_forward_hook(hook_feature)
 # CAM
 if CAM:
     root = 'sample.jpg'
-    img = Image.open(root)
+    img_pil = Image.open(root)
+
+    preprocess = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        normalize
+    ])
+
+    img_tensor = preprocess(img_pil)
+
     # class
     classes = {0: 'cat', 1: 'dog'}
-    get_cam(model, features_blobs, img, classes, root)
+
+    CAMs = get_cam(model, features_blobs, img_tensor, classes, device)
+
+    img = cv2.imread(root)
+    height, width, _ = img.shape
+    CAM = cv2.resize(CAMs[0], (width, height))
+    heatmap = cv2.applyColorMap(CAM, cv2.COLORMAP_JET)
+    result = heatmap * 0.3 + img * 0.5
+    cv2.imwrite('cam.jpg', result)
