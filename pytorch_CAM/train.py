@@ -43,9 +43,9 @@ def retrain(trainloader, model, device, criterion, optimizer, epoch):
 
     os.makedirs('result', exist_ok=True)
     with open('result/train_acc.txt', 'a') as f:
-        f.write(str(acc_avg))
+        f.write(str(acc_avg) + '\n')
     with open('result/train_loss.txt', 'a') as f:
-        f.write(str(loss_avg))
+        f.write(str(loss_avg) + '\n')
 
     return loss_avg, acc_avg / 100.
 
@@ -83,11 +83,11 @@ def retest(testloader, model, device, criterion, epoch):
     if epoch % 1 == 0:
         torch.save(model.state_dict(), 'checkpoint/' + str(epoch) + '.pt')
         with open('result/result.txt', 'a') as f:
-            f.write(result)
+            f.write(result + '\n')
 
     with open('result/test_acc.txt', 'a') as f:
-        f.write(str(test_acc))
+        f.write(str(test_acc) + '\n')
     with open('result/test_loss.txt', 'a') as f:
-        f.write(str(test_loss))
+        f.write(str(test_loss) + '\n')
 
     return test_loss, test_acc / 100.

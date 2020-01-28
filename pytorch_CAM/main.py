@@ -9,6 +9,7 @@ import cv2
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
+from torchsummary import summary
 from torchvision import datasets, transforms
 
 from data import *
@@ -17,8 +18,8 @@ from train import *
 from update import *
 
 # functions
-CAM             = 1
-RESUME          = None
+CAM             = True
+RESUME          = 352
 PRETRAINED      = False
 
 
@@ -26,7 +27,7 @@ PRETRAINED      = False
 BATCH_SIZE      = 64
 IMG_SIZE        = 224
 LEARNING_RATE   = 1e-3
-EPOCH           = 1000
+EPOCH           = 0
 
 
 # prepare data
@@ -73,14 +74,16 @@ else:
     model = inception_v3(pretrained=PRETRAINED,
                          num_classes=len(train_data.classes))
 
-model.to(device)
+summary(model, (3, 224, 224))
 
 
 # load checkpoint
 if RESUME is not None:
     print("===> Resuming from checkpoint.")
     assert os.path.isfile('checkpoint/'+ str(RESUME) + '.pt'), 'Error: no checkpoint found!'
-    model.load_state_dict(torch.load('checkpoint/' + str(RESUME) + '.pt'))
+    model.load_state_dict(torch.load('checkpoint/' + str(RESUME) + '.pt', map_location=device))
+
+model.to(device)
 
 
 # retrain
@@ -124,13 +127,13 @@ if CAM:
     root = 'sample.jpg'
     img_pil = Image.open(root)
 
-    preprocess = transforms.Compose([
+    transform_preprocess = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
         normalize
     ])
 
-    img_tensor = preprocess(img_pil)
+    img_tensor = transform_preprocess(img_pil)
 
     # class
     classes = {0: 'cat', 1: 'dog'}
