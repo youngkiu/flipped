@@ -35,8 +35,6 @@ randomDim = 100
 X_train = (X_train.astype(np.float32) - 127.5)/127.5
 X_train = X_train.reshape(60000, 784)
 
-# Optimizer
-adam = Adam(lr=0.0002, beta_1=0.5)
 
 generator = Sequential()
 generator.add(Dense(256, input_dim=randomDim,
@@ -47,7 +45,8 @@ generator.add(LeakyReLU(0.2))
 generator.add(Dense(1024))
 generator.add(LeakyReLU(0.2))
 generator.add(Dense(784, activation='tanh'))
-generator.compile(loss='binary_crossentropy', optimizer=adam)
+generator.compile(loss='binary_crossentropy',
+                  optimizer=Adam(lr=0.0002, beta_1=0.5))
 
 discriminator = Sequential()
 discriminator.add(Dense(1024, input_dim=784,
@@ -61,7 +60,8 @@ discriminator.add(Dense(256))
 discriminator.add(LeakyReLU(0.2))
 discriminator.add(Dropout(0.3))
 discriminator.add(Dense(1, activation='sigmoid'))
-discriminator.compile(loss='binary_crossentropy', optimizer=adam)
+discriminator.compile(loss='binary_crossentropy',
+                      optimizer=Adam(lr=0.0002, beta_1=0.5))
 
 # Combined network
 discriminator.trainable = False
@@ -69,14 +69,14 @@ ganInput = Input(shape=(randomDim,))
 x = generator(ganInput)
 ganOutput = discriminator(x)
 gan = Model(inputs=ganInput, outputs=ganOutput)
-gan.compile(loss='binary_crossentropy', optimizer=adam)
+gan.compile(loss='binary_crossentropy', optimizer=Adam(lr=0.0002, beta_1=0.5))
+
 
 dLosses = []
 gLosses = []
 
+
 # Plot the loss from each batch
-
-
 def plotLoss(epoch):
     plt.figure(figsize=(10, 8))
     plt.plot(dLosses, label='Discriminitive loss')
@@ -86,9 +86,8 @@ def plotLoss(epoch):
     plt.legend()
     plt.savefig('images/gan_loss_epoch_%d.png' % epoch)
 
+
 # Create a wall of generated MNIST images
-
-
 def plotGeneratedImages(epoch, examples=100, dim=(10, 10), figsize=(10, 10)):
     noise = np.random.normal(0, 1, size=[examples, randomDim])
     generatedImages = generator.predict(noise)
@@ -100,12 +99,13 @@ def plotGeneratedImages(epoch, examples=100, dim=(10, 10), figsize=(10, 10)):
         plt.imshow(generatedImages[i], interpolation='nearest', cmap='gray_r')
         plt.axis('off')
     plt.tight_layout()
+    os.makedirs('images', exist_ok=True)
     plt.savefig('images/gan_generated_image_epoch_%d.png' % epoch)
 
+
 # Save the generator and discriminator networks (and weights) for later use
-
-
 def saveModels(epoch):
+    os.makedirs('models', exist_ok=True)
     generator.save('models/gan_generator_epoch_%d.h5' % epoch)
     discriminator.save('models/gan_discriminator_epoch_%d.h5' % epoch)
 

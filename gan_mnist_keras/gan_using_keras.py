@@ -106,7 +106,7 @@ def plot_generated_images(epoch, generator, examples=100, dim=(10, 10), figsize=
 def training(epochs=1, batch_size=128):
     #Loading the data
     (X_train, y_train, X_test, y_test) = load_data()
-    batch_count = X_train.shape[0] / batch_size
+    batch_count = X_train.shape[0] // batch_size
 
     # Creating GAN
     generator = create_generator()
@@ -115,7 +115,7 @@ def training(epochs=1, batch_size=128):
 
     for e in range(1, epochs+1):
         print("Epoch %d" % e)
-        for _ in tqdm(range(batch_size)):
+        for _ in tqdm(range(batch_count)):
             #generate  random noise as an input  to  initialize the  generator
             noise = np.random.normal(0, 1, [batch_size, 100])
 

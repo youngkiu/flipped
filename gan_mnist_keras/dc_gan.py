@@ -32,9 +32,8 @@ generator = Model(noise_input, generator_(noise_input), name="generator")
 generator_.summary()
 generator.summary()
 
-optimizer = Adam(0.0002, 0.5)
+generator.compile(loss='binary_crossentropy', optimizer=Adam(0.0002, 0.5))
 
-generator.compile(loss='binary_crossentropy', optimizer=optimizer)
 
 noise_data = np.random.normal(0, 1, (32, 100))
 generated_images = 0.5 * generator.predict(noise_data) + 0.5
@@ -60,7 +59,6 @@ show_images(generated_images)
 
 
 discriminator_ = Sequential()
-
 discriminator_.add(Conv2D(32, kernel_size=3, strides=2,
                           input_shape=(28, 28, 1), padding="same"))
 discriminator_.add(LeakyReLU(alpha=0.2))
@@ -81,15 +79,14 @@ discriminator_.add(Flatten())
 discriminator_.add(Dense(1, activation='sigmoid'))
 
 image_input = Input(shape=(28, 28, 1), name="image_input")
-
 discriminator = Model(image_input, discriminator_(
     image_input), name="discriminator")
 
-discriminator.compile(loss='binary_crossentropy',
-                      optimizer=optimizer, metrics=['accuracy'])
-
 discriminator_.summary()
 discriminator.summary()
+
+discriminator.compile(loss='binary_crossentropy',
+                      optimizer=Adam(0.0002, 0.5), metrics=['accuracy'])
 
 
 noise_input2 = Input(shape=(100,), name="noise_input2")
@@ -97,7 +94,8 @@ combined = Model(noise_input2, discriminator(generator(noise_input2)))
 combined.summary()
 
 combined.compile(loss='binary_crossentropy',
-                 optimizer=optimizer, metrics=['accuracy'])
+                 optimizer=Adam(0.0002, 0.5), metrics=['accuracy'])
+
 
 (X_train, _), (_, _) = mnist.load_data()
 
@@ -107,6 +105,7 @@ X_train = np.expand_dims(X_train, axis=3)
 
 batch_size = 128
 half_batch = int(batch_size / 2)
+
 
 def train(epochs, print_step=10):
     history = []

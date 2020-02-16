@@ -43,7 +43,7 @@ def get_optimizer():
 
 
 # Generator 만들기
-def get_generator(optimizer):
+def get_generator():
     generator = Sequential()
     generator.add(Dense(256, input_dim=random_dim,
                         kernel_initializer=initializers.RandomNormal(stddev=0.02)))
@@ -56,12 +56,12 @@ def get_generator(optimizer):
     generator.add(LeakyReLU(0.2))
 
     generator.add(Dense(784, activation='tanh'))
-    generator.compile(loss='binary_crossentropy', optimizer=optimizer)
+    generator.compile(loss='binary_crossentropy', optimizer=get_optimizer())
     return generator
 
 
 # Discriminator 만들기
-def get_discriminator(optimizer):
+def get_discriminator():
     discriminator = Sequential()
     discriminator.add(Dense(1024, input_dim=784,
                             kernel_initializer=initializers.RandomNormal(stddev=0.02)))
@@ -77,11 +77,12 @@ def get_discriminator(optimizer):
     discriminator.add(Dropout(0.3))
 
     discriminator.add(Dense(1, activation='sigmoid'))
-    discriminator.compile(loss='binary_crossentropy', optimizer=optimizer)
+    discriminator.compile(loss='binary_crossentropy',
+                          optimizer=get_optimizer())
     return discriminator
 
 
-def get_gan_network(discriminator, random_dim, generator, optimizer):
+def get_gan_network(discriminator, random_dim, generator):
     # 우리는 Generator와 Discriminator를 동시에 학습시키고 싶을 때 trainable을 False로 설정합니다.
     discriminator.trainable = False
 
@@ -95,7 +96,7 @@ def get_gan_network(discriminator, random_dim, generator, optimizer):
     gan_output = discriminator(x)
 
     gan = Model(inputs=gan_input, outputs=gan_output)
-    gan.compile(loss='binary_crossentropy', optimizer=optimizer)
+    gan.compile(loss='binary_crossentropy', optimizer=get_optimizer())
     return gan
 
 
@@ -122,10 +123,9 @@ def train(epochs=1, batch_size=128):
     batch_count = x_train.shape[0] // batch_size
 
     # 우리의 GAN 네트워크를 만듭니다.
-    adam = get_optimizer()
-    generator = get_generator(adam)
-    discriminator = get_discriminator(adam)
-    gan = get_gan_network(discriminator, random_dim, generator, adam)
+    generator = get_generator()
+    discriminator = get_discriminator()
+    gan = get_gan_network(discriminator, random_dim, generator)
 
     for e in range(1, epochs+1):
         print('-'*15, 'Epoch %d' % e, '-'*15)
