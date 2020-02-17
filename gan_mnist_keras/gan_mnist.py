@@ -4,8 +4,6 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
-from tqdm import tqdm
-
 from keras import initializers
 from keras.datasets import mnist
 from keras.layers import Input
@@ -13,6 +11,7 @@ from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.core import Dense, Dropout
 from keras.models import Model, Sequential
 from keras.optimizers import Adam
+from tqdm import tqdm
 
 # Keras 가 Tensorflow 를 벡엔드로 사용할 수 있도록 설정합니다.
 os.environ["KERAS_BACKEND"] = "tensorflow"
@@ -142,6 +141,11 @@ def train(epochs=1, batch_size=128):
 
             y_dis = np.zeros(2*batch_size)
             y_dis[:batch_size] = 0.9
+
+            # image_batch.shape : (128, 784)
+            # generated_images.shape : (128, 784)
+            # X.shape : (256, 784)
+            # y_dis.shape : (256,)
 
             # Discriminator를 학습시킵니다.
             discriminator.trainable = True

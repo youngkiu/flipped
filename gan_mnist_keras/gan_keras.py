@@ -3,7 +3,6 @@
 import argparse
 
 import numpy as np
-
 from keras import backend as K
 from keras import initializers
 from keras.datasets import mnist
@@ -183,6 +182,11 @@ class Model:
         # labeling and concat generated, real images
         x = np.concatenate((real, generated_images), axis=0)
         y = [0.9] * self.batch_size + [0] * self.batch_size
+
+        # real.shape : (128, 1, 28, 28)
+        # generated_images.shape : (128, 1, 28, 28)
+        # x.shape : (256, 1, 28, 28)
+        # len(y) : 256
 
         # train discriminator
         self.gan.D.trainable = True

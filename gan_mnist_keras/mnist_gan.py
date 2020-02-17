@@ -4,8 +4,6 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
-from tqdm import tqdm
-
 from keras import backend as K
 from keras import initializers
 from keras.datasets import mnist
@@ -16,6 +14,7 @@ from keras.layers.core import Dense, Dropout, Flatten, Reshape
 from keras.layers.normalization import BatchNormalization
 from keras.models import Model, Sequential
 from keras.optimizers import Adam
+from tqdm import tqdm
 
 os.environ["KERAS_BACKEND"] = "tensorflow"
 
@@ -133,6 +132,11 @@ def train(epochs=1, batchSize=128):
             yDis = np.zeros(2*batchSize)
             # One-sided label smoothing
             yDis[:batchSize] = 0.9
+
+            # imageBatch.shape : (128, 784)
+            # generatedImages.shape : (128, 784)
+            # X.shape : (256, 784)
+            # yDis.shape : (256,)
 
             # Train discriminator
             discriminator.trainable = True

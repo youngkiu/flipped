@@ -1,16 +1,15 @@
 # https://medium.com/datadriveninvestor/generative-adversarial-network-gan-using-keras-ce1c05cfdfd3
 
+import keras
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from tqdm import tqdm
-
-import keras
 from keras.datasets import mnist
 from keras.layers import Dense, Dropout, Input
 from keras.layers.advanced_activations import LeakyReLU
 from keras.models import Model, Sequential
 from keras.optimizers import Adam
+from tqdm import tqdm
 
 
 def load_data():
@@ -132,6 +131,11 @@ def training(epochs=1, batch_size=128):
             # Labels for generated and real data
             y_dis = np.zeros(2*batch_size)
             y_dis[:batch_size] = 0.9
+
+            # image_batch.shape : (128, 784)
+            # generated_images.shape : (128, 784)
+            # X.shape : (256, 784)
+            # y_dis.shape : (256,)
 
             #Pre train discriminator on  fake and real data  before starting the gan.
             discriminator.trainable = True
