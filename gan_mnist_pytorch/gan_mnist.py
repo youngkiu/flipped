@@ -15,7 +15,8 @@ from torch.autograd import Variable
 
 transform = transforms.Compose([
     transforms.ToTensor(),
-    transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
+    # https://stackoverflow.com/questions/55124407/output-and-broadcast-shape-mismatch-in-mnist-torchvision
+    transforms.Normalize(mean=(0.5,), std=(0.5,))
 ])
 
 train_dataset = dsets.MNIST(root='./data/', train=True,
@@ -188,11 +189,12 @@ for epoch in range(num_epochs):
 
             plt.savefig('results/mnist-gan-%03d.png' % num_fig)
             num_fig += 1
+            # https://github.com/NVIDIA/flownet2-pytorch/issues/113#issuecomment-450802359
             print('Epoch [%d/%d], Step[%d/%d], d_loss: %.4f, g_loss: %.4f, '
                   'D(x): %.2f, D(G(z)): %.2f'
-                  % (epoch + 1, num_epochs, n+1, num_batches, d_loss.data[0], g_loss.data[0],
+                  % (epoch + 1, num_epochs, n+1, num_batches, d_loss.data, g_loss.data,
                      real_score.data.mean(), fake_score.data.mean()))
-            tracking_dict["d_loss"].append(d_loss.data[0])
-            tracking_dict["g_loss"].append(g_loss.data[0])
+            tracking_dict["d_loss"].append(d_loss.data)
+            tracking_dict["g_loss"].append(g_loss.data)
             tracking_dict["real_score"].append(real_score.data.mean())
             tracking_dict["fake_score"].append(fake_score.data.mean())

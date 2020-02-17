@@ -31,8 +31,8 @@ if not os.path.exists(save_dir):
 # Image processing
 transform = transforms.Compose([
     transforms.ToTensor(),
-    transforms.Normalize(mean=(0.5, 0.5, 0.5),   # 3 for RGB channels
-                         std=(0.5, 0.5, 0.5))])
+    # https://stackoverflow.com/questions/55124407/output-and-broadcast-shape-mismatch-in-mnist-torchvision
+    transforms.Normalize(mean=(0.5,), std=(0.5,))])
 
 # MNIST dataset
 mnist = torchvision.datasets.MNIST(root='./data/',
@@ -148,19 +148,20 @@ for epoch in range(num_epochs):
         # =================================================================== #
         #                          Update Statistics                          #
         # =================================================================== #
+        # https://github.com/NVIDIA/flownet2-pytorch/issues/113#issuecomment-450802359
         d_losses[epoch] = d_losses[epoch] * \
-            (i/(i+1.)) + d_loss.data[0]*(1./(i+1.))
+            (i/(i+1.)) + d_loss.data*(1./(i+1.))
         g_losses[epoch] = g_losses[epoch] * \
-            (i/(i+1.)) + g_loss.data[0]*(1./(i+1.))
+            (i/(i+1.)) + g_loss.data*(1./(i+1.))
         real_scores[epoch] = real_scores[epoch] * \
-            (i/(i+1.)) + real_score.mean().data[0]*(1./(i+1.))
+            (i/(i+1.)) + real_score.mean().data*(1./(i+1.))
         fake_scores[epoch] = fake_scores[epoch] * \
-            (i/(i+1.)) + fake_score.mean().data[0]*(1./(i+1.))
+            (i/(i+1.)) + fake_score.mean().data*(1./(i+1.))
 
         if (i+1) % 200 == 0:
             print('Epoch [{}/{}], Step [{}/{}], d_loss: {:.4f}, g_loss: {:.4f}, D(x): {:.2f}, D(G(z)): {:.2f}'
-                  .format(epoch, num_epochs, i+1, total_step, d_loss.data[0], g_loss.data[0],
-                          real_score.mean().data[0], fake_score.mean().data[0]))
+                  .format(epoch, num_epochs, i+1, total_step, d_loss.data, g_loss.data,
+                          real_score.mean().data, fake_score.mean().data))
 
     # Save real images
     if (epoch+1) == 1:

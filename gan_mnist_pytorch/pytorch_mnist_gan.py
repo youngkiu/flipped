@@ -17,7 +17,8 @@ bs = 100
 # MNIST Dataset
 transform = transforms.Compose([
     transforms.ToTensor(),
-    transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))])
+    # https://stackoverflow.com/questions/55124407/output-and-broadcast-shape-mismatch-in-mnist-torchvision
+    transforms.Normalize(mean=(0.5,), std=(0.5,))])
 
 train_dataset = datasets.MNIST(
     root='./mnist_data/', train=True, transform=transform, download=True)

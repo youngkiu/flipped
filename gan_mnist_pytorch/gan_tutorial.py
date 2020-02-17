@@ -15,8 +15,8 @@ device = torch.device('cuda' if is_cuda else 'cpu')
 # standardization code
 standardizator = transforms.Compose([
     transforms.ToTensor(),
-    transforms.Normalize(mean=(0.5, 0.5, 0.5),   # 3 for RGB channels이나 실제론 gray scale
-                         std=(0.5, 0.5, 0.5))])  # 3 for RGB channels이나 실제론 gray scale
+    # https://stackoverflow.com/questions/55124407/output-and-broadcast-shape-mismatch-in-mnist-torchvision
+    transforms.Normalize(mean=(0.5,), std=(0.5,))])
 
 # MNIST dataset
 train_data = dsets.MNIST(root='data/', train=True,

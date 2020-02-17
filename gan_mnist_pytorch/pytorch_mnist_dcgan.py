@@ -43,7 +43,7 @@ class generator(nn.Module):
         x = F.relu(self.deconv2_bn(self.deconv2(x)))
         x = F.relu(self.deconv3_bn(self.deconv3(x)))
         x = F.relu(self.deconv4_bn(self.deconv4(x)))
-        x = F.tanh(self.deconv5(x))
+        x = torch.tanh(self.deconv5(x))
 
         return x
 
@@ -72,7 +72,7 @@ class discriminator(nn.Module):
         x = F.leaky_relu(self.conv2_bn(self.conv2(x)), 0.2)
         x = F.leaky_relu(self.conv3_bn(self.conv3(x)), 0.2)
         x = F.leaky_relu(self.conv4_bn(self.conv4(x)), 0.2)
-        x = F.sigmoid(self.conv5(x))
+        x = torch.sigmoid(self.conv5(x))
 
         return x
 
@@ -84,12 +84,12 @@ def normal_init(m, mean, std):
 
 
 fixed_z_ = torch.randn((5 * 5, 100)).view(-1, 100, 1, 1)    # fixed noise
-fixed_z_ = Variable(fixed_z_.cuda(), volatile=True)
+fixed_z_ = Variable(fixed_z_.cuda())
 
 
 def show_result(num_epoch, show=False, save=False, path='result.png', isFix=False):
     z_ = torch.randn((5*5, 100)).view(-1, 100, 1, 1)
-    z_ = Variable(z_.cuda(), volatile=True)
+    z_ = Variable(z_.cuda())
 
     G.eval()
     if isFix:
@@ -153,9 +153,10 @@ train_epoch = 20
 # data_loader
 img_size = 64
 transform = transforms.Compose([
-    transforms.Scale(img_size),
+    transforms.Resize(img_size),
     transforms.ToTensor(),
-    transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
+    # https://stackoverflow.com/questions/55124407/output-and-broadcast-shape-mismatch-in-mnist-torchvision
+    transforms.Normalize(mean=(0.5,), std=(0.5,))
 ])
 train_loader = torch.utils.data.DataLoader(
     datasets.MNIST('data', train=True, download=True, transform=transform),
@@ -224,8 +225,9 @@ for epoch in range(train_epoch):
         D_train_loss.backward()
         D_optimizer.step()
 
-        # D_losses.append(D_train_loss.data[0])
-        D_losses.append(D_train_loss.data[0])
+        # https://github.com/NVIDIA/flownet2-pytorch/issues/113#issuecomment-450802359
+        # D_losses.append(D_train_loss.data)
+        D_losses.append(D_train_loss.data)
 
         # train generator G
         G.zero_grad()
@@ -239,7 +241,7 @@ for epoch in range(train_epoch):
         G_train_loss.backward()
         G_optimizer.step()
 
-        G_losses.append(G_train_loss.data[0])
+        G_losses.append(G_train_loss.data)
 
         num_iter += 1
 
