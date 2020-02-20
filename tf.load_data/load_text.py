@@ -80,10 +80,14 @@ def encode_map_fn(text, label):
 all_encoded_data = all_labeled_data.map(encode_map_fn)
 
 train_data = all_encoded_data.skip(TAKE_SIZE).shuffle(BUFFER_SIZE)
-train_data = train_data.padded_batch(BATCH_SIZE)
-
+train_data = train_data.padded_batch(
+    BATCH_SIZE, padded_shapes=(tf.TensorShape([None, ]),
+                               tf.TensorShape([])))
+# http://cs230.stanford.edu/blog/datapipeline/#building-a-text-data-pipeline
 test_data = all_encoded_data.take(TAKE_SIZE)
-test_data = test_data.padded_batch(BATCH_SIZE)
+test_data = test_data.padded_batch(
+    BATCH_SIZE, padded_shapes=(tf.TensorShape([None, ]),
+                               tf.TensorShape([])))
 
 sample_text, sample_labels = next(iter(test_data))
 
