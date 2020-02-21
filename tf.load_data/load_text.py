@@ -35,10 +35,12 @@ all_labeled_data = labeled_data_sets[0]
 for labeled_dataset in labeled_data_sets[1:]:
     all_labeled_data = all_labeled_data.concatenate(labeled_dataset)
 
-all_labeled_data = all_labeled_data.shuffle(
-    BUFFER_SIZE, reshuffle_each_iteration=False)
+# all_labeled_data = all_labeled_data.shuffle(
+#     BUFFER_SIZE, reshuffle_each_iteration=False)
 
 for ex in all_labeled_data.take(5):
+    print(ex)
+for ex in all_labeled_data.skip(len(list(all_labeled_data))-5):
     print(ex)
 
 tokenizer = tfds.features.text.Tokenizer()
@@ -90,22 +92,17 @@ test_data = test_data.padded_batch(
                                tf.TensorShape([])))
 
 sample_text, sample_labels = next(iter(test_data))
-
-sample_text[0], sample_labels[0]
+print(sample_text[0], sample_labels[0])
 
 vocab_size += 1
 
 model = tf.keras.Sequential()
-
 model.add(tf.keras.layers.Embedding(vocab_size, 64))
-
 model.add(tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64)))
-
 # One or more dense layers.
 # Edit the list in the `for` line to experiment with layer sizes.
 for units in [64, 64]:
     model.add(tf.keras.layers.Dense(units, activation='relu'))
-
 # Output layer. The first argument is the number of labels.
 model.add(tf.keras.layers.Dense(3))
 
@@ -117,5 +114,4 @@ model.compile(optimizer='adam',
 model.fit(train_data, epochs=3, validation_data=test_data)
 
 eval_loss, eval_acc = model.evaluate(test_data)
-
 print('\nEval loss: {:.3f}, Eval accuracy: {:.3f}'.format(eval_loss, eval_acc))

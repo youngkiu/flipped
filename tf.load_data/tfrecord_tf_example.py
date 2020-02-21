@@ -87,7 +87,7 @@ example_proto = tf.train.Example.FromString(serialized_example)
 print(example_proto)
 
 
-tf.data.Dataset.from_tensor_slices(feature1)
+print(tf.data.Dataset.from_tensor_slices(feature1))
 
 features_dataset = tf.data.Dataset.from_tensor_slices(
     (feature0, feature1, feature2, feature3))
